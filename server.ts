@@ -6,13 +6,10 @@ app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_here';
 
-// مسار تسجيل الدخول وتفعيل الكود
+// مسار تسجيل الدخول وتفعيل الكود (معدل ليتوافق مع أندرويد)
 app.post('/api/app/login', async (req: Request, res: Response) => {
   try {
     const { code, username, password, device_id } = req.body;
-    
-    // هنا يتم التحقق من الكود في قاعدة البيانات (db.json أو Supabase)
-    // كمثال افتراضي للتحقق الناجح:
     const activeCode = code || username; 
 
     if (!activeCode) {
@@ -29,7 +26,7 @@ app.post('/api/app/login', async (req: Request, res: Response) => {
       { expiresIn: '30d' }
     );
 
-    // إرسال الاستجابة متكاملة تماماً لتتوافق مع XtreamModels.kt في التطبيق
+    // إرسال الاستجابة المطابقة لملف XtreamModels.kt في التطبيق
     return res.status(200).json({
       success: true,
       status: "Active",
