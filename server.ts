@@ -1702,18 +1702,18 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     foundCode.expires_at = extendedDate.toISOString();
   }
   
-  // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED (فحص شامل لكل تسميات النشاط والاستعمال)
-const isStatusUsedOrActive = (
-  codeStatusClean === 'UTILISÉ' || 
-  codeStatusClean === 'UTILISE' || 
-  codeStatusClean === 'UTILE' || 
-  codeStatusClean === 'USED' || 
-  codeStatusClean === 'ACTIVE' || 
-  codeStatusClean === 'ACTIF' || 
-  codeStatusClean === 'DISPONIBLE' || 
-  codeStatusClean === '1' || 
-  codeStatusClean === 'TRUE'
-);
+ // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED
+  const isStatusUsedOrActive = (
+    codeStatusClean === 'UTILISÉ' || 
+    codeStatusClean === 'UTILISE' || 
+    codeStatusClean === 'UTILE' || 
+    codeStatusClean === 'USED' || 
+    codeStatusClean === 'ACTIVE' || 
+    codeStatusClean === 'ACTIF' || 
+    codeStatusClean === 'DISPONIBLE' || 
+    codeStatusClean === '1' || 
+    codeStatusClean === 'TRUE'
+  );
 
   if (isStatusUsedOrActive) {
     let sub = db.subscriptions.find(s => String(s.code_used || '').trim() === effectiveCode || String(s.code_used || '').trim() === rawCode);
@@ -1722,7 +1722,7 @@ const isStatusUsedOrActive = (
       const expiresAt = foundCode.expires_at ? new Date(foundCode.expires_at) : new Date(now.getTime() + Math.round(durationMonths * 30 * 24 * 3600 * 1000));
       sub = {
         id: 'sub_' + Date.now(),
-        client: foundCode.client_name,
+        client: foundCode.client_name || 'Client VIU App',
         username: `viu_${effectiveCode.substring(0, 6)}`,
         password: 'pwd_' + Math.random().toString(36).substring(2, 8),
         code_used: effectiveCode,
@@ -1735,17 +1735,13 @@ const isStatusUsedOrActive = (
       db.subscriptions.unshift(sub);
       saveDB(db);
       syncSupabaseSubscription(sub);
-    } else {
-      sub.last_connection = now.toISOString();
-      sub.device_id = device;
-      saveDB(db);
-      syncSupabaseSubscription(sub);
     }
 
+    // --- توليد التوكن الإجباري ---
     const tokenPayload = {
       code: effectiveCode,
       sub_id: sub.id,
-      client_name: foundCode.client_name,
+      client_name: foundCode.client_name || 'Client VIU App',
       type: 'app_client'
     };
 
@@ -1753,20 +1749,19 @@ const isStatusUsedOrActive = (
       expiresIn: '365d'
     });
 
-    addLog('Connexion App réussie', 'Connexion', `Code ${effectiveCode} réauthentifié sur ${device}`, foundCode.client_name, req.ip || '127.0.0.1');
-
-    const successResp = {
+    return res.json({
       success: true,
       message: 'Connexion réussie',
       status: 'Active',
-      token,
+      token: token, // إرسال التوكن بوضوح
       code: effectiveCode,
       client_name: foundCode.client_name,
       username: sub.username,
       activated_at: foundCode.activated_at || sub.activated_at,
       expires_at: foundCode.expires_at || sub.expires_at,
       device_id: device
-    };
+    });
+  }
     console.log('[LOGIN API] Réponse envoyée au client (200 Re-login):', successResp);
     return res.json(successResp);
   }
