@@ -21,33 +21,30 @@ app.use((req: Request, res: Response, next) => {
   next();
 });
 
-// دالة معالجة الاستجابة الموحدة التي ترجع الـ JSON الكامل والمقبول من التطبيق
+// دالة معالجة الاستجابة بالهيكل الجديد المخصص لتطبيقات الـ Xtream
 const handleLoginSuccess = (req: Request, res: Response) => {
   const activeCode = req.body.code || req.body.username || req.query.code || req.query.username || "12345";
   const activePassword = req.body.password || req.query.password || String(activeCode);
 
-  const token = jwt.sign(
-    { code: activeCode, device_id: req.body.device_id || 'unknown' },
-    JWT_SECRET,
-    { expiresIn: '30d' }
-  );
-
   const responseObject = {
-    result: true,
-    status: "success",
-    success: true,
-    message: "Login successful",
-    token: token,
-    jwt: token,
-    access_token: token,
     user_info: {
       username: String(activeCode),
       password: String(activePassword),
       auth: 1,
       status: "Active",
       exp_date: "2027-01-01",
-      active_connections: 1,
-      max_connections: 2
+      active_connections: "1",
+      max_connections: "2"
+    },
+    server_info: {
+      url: "oran31.onrender.com",
+      port: "443",
+      https_port: "443",
+      server_protocol: "https",
+      rtmp_port: "8080",
+      timezone: "Europe/London",
+      timestamp_now: 1710000000,
+      time_now: "2026-07-23 21:45:00"
     }
   };
 
@@ -55,7 +52,7 @@ const handleLoginSuccess = (req: Request, res: Response) => {
   return res.status(200).json(responseObject);
 };
 
-// تغطية كافة مسارات تسجيل الدخول والتفعيل المحتملة في تطبيقات الاستريمنغ (POST و GET)
+// تغطية كافة مسارات تسجيل الدخول والتفعيل المحتملة
 const routes = [
   '/api/app/login',
   '/login.json',
@@ -70,7 +67,7 @@ routes.forEach(route => {
   app.get(route, handleLoginSuccess);
 });
 
-// شبكة أمان عامة: أي مسار آخر يطلبه التطبيق سيتم التعامل معه وإرجاع النجاح مباشرة لمنع أي استجابة فارغة
+// شبكة أمان عامة لأي مسار آخر
 app.all('*', (req: Request, res: Response) => {
   return handleLoginSuccess(req, res);
 });
