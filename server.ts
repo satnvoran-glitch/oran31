@@ -64,3 +64,16 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+// مسار إضافي للتوافق مع الطلبات المباشرة
+app.post('/login.json', async (req: Request, res: Response) => {
+  return res.status(200).json({
+    success: true,
+    status: "Active",
+    token: "valid_token_123",
+    user_info: {
+      username: "Ayoub",
+      status: "Active",
+      exp_date: "2027-01-01"
+    }
+  });
+});
