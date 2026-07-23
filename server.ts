@@ -1550,29 +1550,32 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
   const db = loadDB();
   const queryVal = cleanCode || rawCode;
 
-  // 1. Lookup in local DB codes table
-  let foundCode = db.codes.find(c => c.code.trim() === cleanCode || c.code.trim() === rawCode);
+  // 1. Lookup in local DB codes table (مع تحويل النوع لنص لتفادي خطأ الأرقام)
+  let foundCode = db.codes.find(c => String(c.code || '').trim() === cleanCode || String(c.code || '').trim() === rawCode);
 
   // 2. Lookup in local DB subscriptions table if not in codes
   if (!foundCode) {
     const existingSub = db.subscriptions.find(s => 
-      s.code_used === cleanCode || 
-      s.code_used === rawCode || 
-      s.username === rawCode || 
-      s.username === cleanCode || 
-      (s as any).code === rawCode
+      String(s.code_used || '').trim() === cleanCode || 
+      String(s.code_used || '').trim() === rawCode || 
+      String(s.username || '').trim() === rawCode || 
+      String(s.username || '').trim() === cleanCode || 
+      String((s as any).code || '').trim() === rawCode
     );
 
     if (existingSub) {
+      const subStatus = String(existingSub.status || '').trim().toUpperCase();
+      const mappedStatus = (subStatus === 'ACTIVE' || subStatus === 'ACTIF' || subStatus === 'UTILISÉ' || subStatus === 'UTILISE' || subStatus === '1' || subStatus === 'TRUE') ? 'Utilisé' : 'Expiré';
+
       foundCode = {
         id: existingSub.id,
-        code: existingSub.code_used || existingSub.username || queryVal,
+        code: String(existingSub.code_used || existingSub.username || queryVal).trim(),
         client_name: existingSub.client || 'Client VIU App',
-        duration: 12,
+        duration: Number(existingSub.duration) || 12,
         created_at: existingSub.activated_at || new Date().toISOString(),
         activated_at: existingSub.activated_at || new Date().toISOString(),
         expires_at: existingSub.expires_at || null,
-        status: existingSub.status === 'Active' ? 'Utilisé' : (existingSub.status === 'Expired' ? 'Expiré' : 'Utilisé')
+        status: mappedStatus
       };
     }
   }
@@ -1587,6 +1590,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
         if (error) {
           console.error('[Supabase SQL Query Error codes]:', error.message);
         } else if (data) {
+          const spStatus = String(data.status || '').trim().toUpperCase();
           foundCode = {
             id: 'code_sp_' + data.code,
             code: String(data.code).trim(),
@@ -1595,7 +1599,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
             created_at: data.created_at || new Date().toISOString(),
             activated_at: data.activated_at || null,
             expires_at: data.expires_at || null,
-            status: data.status || 'Disponible'
+            status: (spStatus === 'ACTIVE' || spStatus === 'ACTIF' || spStatus === 'DISPONIBLE' || spStatus === '1' || spStatus === 'TRUE') ? 'Utilisé' : 'Expiré'
           };
           db.codes.unshift(foundCode);
           saveDB(db);
