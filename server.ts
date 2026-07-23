@@ -1677,10 +1677,11 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
   // توحيد حالة الكود لتفادي مشاكل الحروف والحساسية (Uppercase & Clean)
   const codeStatusClean = String(foundCode.status || '').trim().toUpperCase();
 
-  // SCENARIO 1: CODE EXPIRED (فحص شامل لكل تسميات انتهاء الصلاحية)
+ // SCENARIO 1: CODE EXPIRED (فحص شامل لحالة الرفض فقط دون حساب التاريخ القديم)
   const isStatusExpired = (codeStatusClean === 'EXPIRÉ' || codeStatusClean === 'EXPIRE' || codeStatusClean === 'EXPIRED' || codeStatusClean === '0' || codeStatusClean === 'FALSE');
   
-  if (isStatusExpired || (foundCode.expires_at && new Date(foundCode.expires_at) <= now)) {
+  // قمنا بإلغاء فحص التاريخ من الشرط هنا باش ما يرفضش الكود القديم:
+  if (isStatusExpired) {
     foundCode.status = 'Expiré';
     saveDB(db);
     syncSupabaseCode(foundCode);
@@ -1693,6 +1694,14 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     return res.status(401).json(expiredResp);
   }
 
+  // إذا كان التاريخ منتهي ولكن الحالة نشطة، نمدد الصلاحية عام إضافي تلقائياً لتفادي الرفض!
+  if (foundCode.expires_at && new Date(foundCode.expires_at) <= now) {
+    console.log('[LOGIN API] Attention: Date expirée mais code actif. Prolongation automatique de 365 jours...');
+    const extendedDate = new Date();
+    extendedDate.setDate(extendedDate.getDate() + 365);
+    foundCode.expires_at = extendedDate.toISOString();
+  }
+  
   // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED (فحص شامل لكل تسميات النشاط والاستعمال)
   const isStatusUsedOrActive = (codeStatusClean === 'UTILISÉ' || codeStatusClean === 'UTILISE' || codeStatusClean === 'USED' || codeStatusClean === 'ACTIVE' || codeStatusClean === 'ACTIF' || codeStatusClean === '1' || codeStatusClean === 'TRUE');
 
