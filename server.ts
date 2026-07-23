@@ -12,8 +12,10 @@ app.get('/', (req: Request, res: Response) => {
   res.send('IU Panel Backend is Running Successfully! 🚀');
 });
 
-// دالة موحدة للرد بنجاح لأي طلب تسجيل دخول أو تفعيل بغض النظر عن المسار
+// دالة موحدة للرد بنجاح وتغطية كل صيغ الاستجابة التي تنتظرها التطبيقات
 const handleLoginSuccess = (req: Request, res: Response) => {
+  console.log("BODY RECEIVED:", req.body); // طباعة البيانات الواردة في سجلات Render لمعاينة الطلب
+  
   const activeCode = req.body.code || req.body.username || req.query.code || "12345";
   
   const token = jwt.sign(
@@ -23,8 +25,10 @@ const handleLoginSuccess = (req: Request, res: Response) => {
   );
 
   return res.status(200).json({
+    result: true,
+    status: "success",
     success: true,
-    status: "Active",
+    message: "Login successful",
     token: token,
     jwt: token,
     access_token: token,
@@ -36,8 +40,7 @@ const handleLoginSuccess = (req: Request, res: Response) => {
       exp_date: "2027-01-01",
       active_connections: 1,
       max_connections: 2
-    },
-    message: "Login successful"
+    }
   });
 };
 
