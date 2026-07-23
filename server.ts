@@ -1703,7 +1703,17 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
   }
   
   // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED (فحص شامل لكل تسميات النشاط والاستعمال)
-  const isStatusUsedOrActive = (codeStatusClean === 'UTILISÉ' || codeStatusClean === 'UTILISE' || codeStatusClean === 'USED' || codeStatusClean === 'ACTIVE' || codeStatusClean === 'ACTIF' || codeStatusClean === '1' || codeStatusClean === 'TRUE');
+const isStatusUsedOrActive = (
+  codeStatusClean === 'UTILISÉ' || 
+  codeStatusClean === 'UTILISE' || 
+  codeStatusClean === 'UTILE' || 
+  codeStatusClean === 'USED' || 
+  codeStatusClean === 'ACTIVE' || 
+  codeStatusClean === 'ACTIF' || 
+  codeStatusClean === 'DISPONIBLE' || 
+  codeStatusClean === '1' || 
+  codeStatusClean === 'TRUE'
+);
 
   if (isStatusUsedOrActive) {
     let sub = db.subscriptions.find(s => String(s.code_used || '').trim() === effectiveCode || String(s.code_used || '').trim() === rawCode);
