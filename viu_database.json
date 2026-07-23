@@ -1,0 +1,330 @@
+{
+  "config": {
+    "panel_name": "VIU PANEL",
+    "logo_url": "",
+    "timezone": "Europe/Paris",
+    "supabase_url": "",
+    "supabase_anon_key": "",
+    "jwt_secret": "viu_panel_super_secret_jwt_key_2026",
+    "default_duration": 12,
+    "sync_interval": 30,
+    "auto_sync_enabled": true
+  },
+  "servers": {
+    "movies": {
+      "id": "movies",
+      "name": "Movies Server",
+      "host": "http://xtream-movies.example.com:8080",
+      "username": "user_movies",
+      "password": "pass_movies_2026",
+      "status": "Connected",
+      "lastSync": "2026-07-23T11:07:37.414Z",
+      "enabled": true
+    },
+    "series": {
+      "id": "series",
+      "name": "Series Server",
+      "host": "http://xtream-series.example.com:8080",
+      "username": "user_series",
+      "password": "pass_series_2026",
+      "status": "Connected",
+      "lastSync": "2026-07-23T11:07:37.414Z",
+      "enabled": true
+    },
+    "shahid": {
+      "id": "shahid",
+      "name": "Shahid VIP Server",
+      "host": "http://xtream-shahid.example.com:8080",
+      "username": "user_shahid",
+      "password": "pass_shahid_2026",
+      "status": "Connected",
+      "lastSync": "2026-07-23T11:07:37.414Z",
+      "enabled": true
+    }
+  },
+  "codes": [
+    {
+      "id": "code_1784802095034",
+      "code": "12345677",
+      "client_name": "Aaaaa",
+      "duration": 12,
+      "created_at": "2026-07-23T10:21:35.034Z",
+      "activated_at": null,
+      "expires_at": null,
+      "status": "Disponible"
+    },
+    {
+      "id": "c1",
+      "code": "19877154",
+      "client_name": "Android TV",
+      "duration": 12,
+      "created_at": "2026-07-18T09:38:38.774Z",
+      "activated_at": "2026-07-21T09:38:38.774Z",
+      "expires_at": "2027-07-21T09:38:38.774Z",
+      "status": "Utilisé"
+    },
+    {
+      "id": "c2",
+      "code": "84920153",
+      "client_name": "Client VIP Paris",
+      "duration": 12,
+      "created_at": "2026-07-20T09:38:38.774Z",
+      "activated_at": "2026-07-23T10:30:53.825Z",
+      "expires_at": "2027-07-18T10:30:53.825Z",
+      "status": "Utilisé"
+    },
+    {
+      "id": "c3",
+      "code": "37291048",
+      "client_name": "Smart TV Salon",
+      "duration": 6,
+      "created_at": "2026-07-13T09:38:38.774Z",
+      "activated_at": null,
+      "expires_at": null,
+      "status": "Disponible"
+    },
+    {
+      "id": "c4",
+      "code": "58201947",
+      "client_name": "Formuler Z11 Pro",
+      "duration": 1,
+      "created_at": "2026-06-13T09:38:38.774Z",
+      "activated_at": "2026-06-15T09:38:38.774Z",
+      "expires_at": "2026-07-15T09:38:38.774Z",
+      "status": "Expiré"
+    }
+  ],
+  "subscriptions": [
+    {
+      "id": "sub_1784802653825",
+      "client": "Client VIP Paris",
+      "username": "viu_772338",
+      "password": "0xgt3hl81",
+      "code_used": "84920153",
+      "activated_at": "2026-07-23T10:30:53.825Z",
+      "expires_at": "2027-07-18T10:30:53.825Z",
+      "status": "Active",
+      "device_id": "Android TV",
+      "last_connection": "2026-07-23T11:24:05.113Z"
+    },
+    {
+      "id": "sub1",
+      "client": "Android TV",
+      "username": "viu_87154",
+      "password": "PassWord982",
+      "code_used": "19877154",
+      "activated_at": "2026-07-21T09:38:38.774Z",
+      "expires_at": "2027-07-21T09:38:38.774Z",
+      "status": "Active",
+      "device_id": "4A:22:90:B1:FF:3E",
+      "last_connection": "2026-07-23T09:38:38.774Z"
+    },
+    {
+      "id": "sub2",
+      "client": "Formuler Z11 Pro",
+      "username": "viu_19472",
+      "password": "PassWord102",
+      "code_used": "58201947",
+      "activated_at": "2026-06-15T09:38:38.774Z",
+      "expires_at": "2026-07-15T09:38:38.774Z",
+      "status": "Expired",
+      "device_id": "8C:11:00:22:88:AB",
+      "last_connection": "2026-07-14T09:38:38.774Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat1",
+      "name": "Action",
+      "order": 1,
+      "server_id": "movies",
+      "hidden": false
+    },
+    {
+      "id": "cat2",
+      "name": "Nouveautés",
+      "order": 2,
+      "server_id": "movies",
+      "hidden": false
+    },
+    {
+      "id": "cat3",
+      "name": "Animation",
+      "order": 3,
+      "server_id": "movies",
+      "hidden": false
+    },
+    {
+      "id": "cat4",
+      "name": "Netflix",
+      "order": 4,
+      "server_id": "series",
+      "hidden": false
+    },
+    {
+      "id": "cat5",
+      "name": "Marvel",
+      "order": 5,
+      "server_id": "movies",
+      "hidden": false
+    },
+    {
+      "id": "cat6",
+      "name": "Disney",
+      "order": 6,
+      "server_id": "movies",
+      "hidden": false
+    },
+    {
+      "id": "cat7",
+      "name": "Films Français",
+      "order": 7,
+      "server_id": "movies",
+      "hidden": false
+    },
+    {
+      "id": "cat8",
+      "name": "Shahid VIP Exclusivités",
+      "order": 8,
+      "server_id": "shahid",
+      "hidden": false
+    }
+  ],
+  "logs": [
+    {
+      "id": "log_1784805845117_74fh",
+      "date": "2026-07-23T11:24:05.117Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur Android TV"
+    },
+    {
+      "id": "log_1784804857415_20g2",
+      "date": "2026-07-23T11:07:37.415Z",
+      "ip": "127.0.0.1",
+      "user": "Admin VIU",
+      "action": "Synchronisation automatique",
+      "type": "Synchronisation",
+      "details": "Synchronisation automatique effectuée sur les 3 serveurs Xtream activés."
+    },
+    {
+      "id": "log_1784803024923_mk9x",
+      "date": "2026-07-23T10:37:04.923Z",
+      "ip": "127.0.0.1",
+      "user": "Android TV Device",
+      "action": "Échec connexion app",
+      "type": "Erreur",
+      "details": "Code inexistant: 00000000"
+    },
+    {
+      "id": "log_1784803021256_o5r5",
+      "date": "2026-07-23T10:37:01.256Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur Android TV"
+    },
+    {
+      "id": "log_1784803021244_5loo",
+      "date": "2026-07-23T10:37:01.244Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur Android TV"
+    },
+    {
+      "id": "log_1784803021203_h8y7",
+      "date": "2026-07-23T10:37:01.203Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur Android TV"
+    },
+    {
+      "id": "log_1784803014354_i8h2",
+      "date": "2026-07-23T10:36:54.354Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur Android TV"
+    },
+    {
+      "id": "log_1784803005649_z056",
+      "date": "2026-07-23T10:36:45.649Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur Android TV"
+    },
+    {
+      "id": "log_1784802668347_ld5g",
+      "date": "2026-07-23T10:31:08.347Z",
+      "ip": "127.0.0.1",
+      "user": "Android TV",
+      "action": "Échec connexion app",
+      "type": "Erreur",
+      "details": "Code inexistant: 00000000"
+    },
+    {
+      "id": "log_1784802660644_me47",
+      "date": "2026-07-23T10:31:00.644Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Connexion App réussie",
+      "type": "Connexion",
+      "details": "Code 84920153 réauthentifié sur AndroidTV_Test"
+    },
+    {
+      "id": "log_1784802653848_cgej",
+      "date": "2026-07-23T10:30:53.848Z",
+      "ip": "127.0.0.1",
+      "user": "Client VIP Paris",
+      "action": "Activation Code App réussie",
+      "type": "Activation",
+      "details": "Premier accès code 84920153 activé pour AndroidTV_Test"
+    },
+    {
+      "id": "log_1784802095036_nzpt",
+      "date": "2026-07-23T10:21:35.036Z",
+      "ip": "127.0.0.1",
+      "user": "Admin VIU",
+      "action": "Création de code d'abonnement",
+      "type": "API",
+      "details": "Nouveau code créé: 12345677 (Durée: 12)"
+    },
+    {
+      "id": "log_1784802043077_vqgs",
+      "date": "2026-07-23T10:20:43.077Z",
+      "ip": "127.0.0.1",
+      "user": "admin",
+      "action": "Connexion d'administration réussie",
+      "type": "Connexion",
+      "details": "L'administrateur s'est connecté à VIU PANEL"
+    },
+    {
+      "id": "log1",
+      "date": "2026-07-23T09:38:38.774Z",
+      "ip": "192.168.1.1",
+      "user": "VIU System",
+      "action": "Initialisation du panneau VIU PANEL",
+      "type": "API",
+      "details": "Chargement des configurations et initialisation des 3 serveurs Xtream"
+    },
+    {
+      "id": "log2",
+      "date": "2026-07-23T07:38:38.774Z",
+      "ip": "105.235.12.89",
+      "user": "Android TV",
+      "action": "Activation de code réussie",
+      "type": "Activation",
+      "details": "Code 19877154 activé pour Android TV (Expiration: 12 Mois)"
+    }
+  ]
+}

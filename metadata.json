@@ -1,0 +1,6 @@
+{
+  "name": "VIU PANEL",
+  "description": "Panneau d'administration professionnel pour films, séries, Shahid VIP et gestion des abonnements Xtream & My Movies.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
