@@ -6,7 +6,12 @@ app.use(express.json());
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_here';
 
-// مسار تسجيل الدخول وتفعيل الكود (معدل ليتوافق مع أندرويد)
+// صفحة الترحيب الرئيسية باش ما يطلعلكش Cannot GET / في المتصفح
+app.get('/', (req: Request, res: Response) => {
+  res.send('IU Panel Backend is Running Successfully! 🚀');
+});
+
+// مسار تسجيل الدخول وتفعيل الكود (متوافق مع أندرويد)
 app.post('/api/app/login', async (req: Request, res: Response) => {
   try {
     const { code, username, password, device_id } = req.body;
