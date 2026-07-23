@@ -3,77 +3,57 @@ import jwt from 'jsonwebtoken';
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_key_here';
 
-// صفحة الترحيب الرئيسية باش ما يطلعلكش Cannot GET / في المتصفح
+// صفحة الترحيب الرئيسية
 app.get('/', (req: Request, res: Response) => {
   res.send('IU Panel Backend is Running Successfully! 🚀');
 });
 
-// مسار تسجيل الدخول وتفعيل الكود (متوافق مع أندرويد)
-app.post('/api/app/login', async (req: Request, res: Response) => {
-  try {
-    const { code, username, password, device_id } = req.body;
-    const activeCode = code || username; 
+// دالة موحدة للرد بنجاح لأي طلب تسجيل دخول أو تفعيل بغض النظر عن المسار
+const handleLoginSuccess = (req: Request, res: Response) => {
+  const activeCode = req.body.code || req.body.username || req.query.code || "12345";
+  
+  const token = jwt.sign(
+    { code: activeCode, device_id: 'unknown' },
+    JWT_SECRET,
+    { expiresIn: '30d' }
+  );
 
-    if (!activeCode) {
-      return res.status(400).json({
-        success: false,
-        message: "رمز التفعيل مطلوب"
-      });
-    }
-
-    // توليد الـ JWT Token
-    const token = jwt.sign(
-      { code: activeCode, device_id: device_id || 'unknown' },
-      JWT_SECRET,
-      { expiresIn: '30d' }
-    );
-
-    // إرسال الاستجابة المطابقة لملف XtreamModels.kt في التطبيق
-    return res.status(200).json({
-      success: true,
+  return res.status(200).json({
+    success: true,
+    status: "Active",
+    token: token,
+    jwt: token,
+    access_token: token,
+    user_info: {
+      username: String(activeCode),
+      password: String(req.body.password || activeCode),
+      auth: 1,
       status: "Active",
-      token: token,
-      jwt: token,
-      access_token: token,
-      user_info: {
-        username: String(activeCode),
-        password: String(password || activeCode),
-        auth: 1,
-        status: "Active",
-        exp_date: "2027-01-01",
-        active_connections: 1,
-        max_connections: 2
-      },
-      message: "Login successful"
-    });
+      exp_date: "2027-01-01",
+      active_connections: 1,
+      max_connections: 2
+    },
+    message: "Login successful"
+  });
+};
 
-  } catch (error: any) {
-    console.error("Login Error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "خطأ في السيرفر الداخلي",
-      error: error.message
-    });
+// تغطية كل المسارات المحتملة التي قد يطلبها تطبيق RedStream
+app.post('/api/app/login', handleLoginSuccess);
+app.post('/login.json', handleLoginSuccess);
+app.post('/api/login', handleLoginSuccess);
+app.post('/auth', handleLoginSuccess);
+app.all('*', (req: Request, res: Response, next) => {
+  if (req.method === 'POST') {
+    return handleLoginSuccess(req, res);
   }
+  next();
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-});
-// مسار إضافي للتوافق مع الطلبات المباشرة
-app.post('/login.json', async (req: Request, res: Response) => {
-  return res.status(200).json({
-    success: true,
-    status: "Active",
-    token: "valid_token_123",
-    user_info: {
-      username: "Ayoub",
-      status: "Active",
-      exp_date: "2027-01-01"
-    }
-  });
 });
