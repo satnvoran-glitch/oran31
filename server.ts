@@ -1507,7 +1507,7 @@ function authenticateAppClientJWT(req: express.Request, res: express.Response, n
     }
 
     // Check code expiration
-    const codeObj = db.codes.find(c => c.code === decoded.code);
+    const codeObj = db.codes.find(c => String(c.code).trim() === String(decoded.code).trim());
     if (codeObj) {
       if (codeObj.status === 'Expiré' || (codeObj.expires_at && new Date(codeObj.expires_at) <= new Date())) {
         return res.status(401).json({
@@ -1550,7 +1550,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
   const db = loadDB();
   const queryVal = cleanCode || rawCode;
 
-  // 1. Lookup in local DB codes table (مع تحويل النوع لنص لتفادي خطأ الأرقام)
+  // 1. Lookup in local DB codes table
   let foundCode = db.codes.find(c => String(c.code || '').trim() === cleanCode || String(c.code || '').trim() === rawCode);
 
   // 2. Lookup in local DB subscriptions table if not in codes
@@ -1575,7 +1575,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
         created_at: existingSub.activated_at || new Date().toISOString(),
         activated_at: existingSub.activated_at || new Date().toISOString(),
         expires_at: existingSub.expires_at || null,
-        status: mappedStatus
+        status: mappedStatus as 'Disponible' | 'Utilisé' | 'Expiré'
       };
     }
   }
@@ -1610,7 +1610,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     }
   }
 
-// 4. Fallback check in Supabase "subscriptions" table if still not found
+  // 4. Fallback check in Supabase "subscriptions" table if still not found
   if (!foundCode) {
     const supabase = getSupabaseClient();
     if (supabase) {
@@ -1620,15 +1620,18 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
         if (error) {
           console.error('[Supabase SQL Query Error subscriptions]:', error.message);
         } else if (data) {
+          const spSubStatus = String(data.status || '').trim().toUpperCase();
+          const isSubActive = (spSubStatus === 'ACTIVE' || spSubStatus === 'ACTIF' || spSubStatus === 'UTILISÉ' || spSubStatus === 'UTILISE' || spSubStatus === '1' || spSubStatus === 'TRUE');
+
           const subObj = {
             id: data.id || 'sub_sp_' + (data.code_used || data.username || Date.now()),
             client: data.client || 'Client Supabase',
             username: data.username || `viu_${queryVal}`,
             password: data.password || 'pwd_default',
-            code_used: data.code_used || data.code || queryVal,
+            code_used: String(data.code_used || data.code || queryVal).trim(),
             activated_at: data.activated_at || new Date().toISOString(),
             expires_at: data.expires_at || null,
-            status: data.status || 'Active',
+            status: isSubActive ? 'Active' as const : 'Expired' as const,
             device_id: device_id || 'Android TV',
             last_connection: new Date().toISOString()
           };
@@ -1638,10 +1641,6 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
             saveDB(db);
           }
 
-          // توحيد قراءة الحالة وتفادي تحويلها إلى Expiré بالخطأ
-          const spSubStatus = String(subObj.status || '').trim().toUpperCase();
-          const isActif = (spSubStatus === 'ACTIVE' || spSubStatus === 'ACTIF' || spSubStatus === 'UTILISÉ' || spSubStatus === 'UTILISE' || spSubStatus === '1' || spSubStatus === 'TRUE');
-
           foundCode = {
             id: 'code_sub_' + subObj.code_used,
             code: String(subObj.code_used).trim(),
@@ -1650,7 +1649,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
             created_at: subObj.activated_at,
             activated_at: subObj.activated_at,
             expires_at: subObj.expires_at,
-            status: isActif ? 'Utilisé' : 'Expiré'
+            status: isSubActive ? 'Utilisé' : 'Expiré'
           };
         }
       } catch (e: any) {
@@ -1668,16 +1667,15 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
       error: 'Code d\'abonnement invalide ou introuvable.'
     };
     console.log('[LOGIN API] Réponse envoyée au client (404):', notFoundResp);
-    return res.status(200).json(notFoundResp);
+    return res.status(404).json(notFoundResp);
   }
 
   const now = new Date();
   const device = device_id || device_name || req.headers['user-agent'] || 'Android TV Client';
   const effectiveCode = foundCode.code;
 
-  // SCENARIO 1: CODE EXPIRED (مع إضافة فترة سماح 24 ساعة لتفادي مشاكل فروقات التوقيت في السيرفر)
-  const gracePeriod = new Date(now.getTime() - (24 * 3600 * 1000));
-  if (foundCode.status === 'Expiré' || (foundCode.expires_at && new Date(foundCode.expires_at) <= gracePeriod)) {
+  // SCENARIO 1: CODE EXPIRED
+  if (foundCode.status === 'Expiré' || (foundCode.expires_at && new Date(foundCode.expires_at) <= now)) {
     foundCode.status = 'Expiré';
     saveDB(db);
     syncSupabaseCode(foundCode);
@@ -1687,12 +1685,12 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
       error: 'Ce code d\'abonnement est expiré. Veuillez contacter votre revendeur pour le renouveler.'
     };
     console.log('[LOGIN API] Réponse envoyée au client (401 Expiré):', expiredResp);
-    return res.status(200).json(expiredResp);
+    return res.status(401).json(expiredResp);
   }
 
   // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED
   if (foundCode.status === 'Utilisé') {
-    let sub = db.subscriptions.find(s => s.code_used === effectiveCode || s.code_used === rawCode);
+    let sub = db.subscriptions.find(s => String(s.code_used || '').trim() === effectiveCode || String(s.code_used || '').trim() === rawCode);
     if (!sub) {
       const durationMonths = Number(foundCode.duration) || db.config.default_duration || 12;
       const expiresAt = foundCode.expires_at ? new Date(foundCode.expires_at) : new Date(now.getTime() + Math.round(durationMonths * 30 * 24 * 3600 * 1000));
@@ -1801,9 +1799,6 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     expires_at: newSub.expires_at,
     device_id: device
   };
-  console.log('[LOGIN API] Réponse envoyée au client (200 Activation):', activationResp);
-  return res.json(activationResp);
-});
   console.log('[LOGIN API] Réponse envoyée au client (200 Activation):', activationResp);
   return res.json(activationResp);
 });
