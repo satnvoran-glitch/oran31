@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_dark"
+    android:orientation="vertical">
+
+    <!-- Top Navigation Bar for Android TV Focus Navigation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:background="#14171E"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="24dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textColor="@color/red_primary"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <!-- Navigation Tabs -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="32dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnTabMovies"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:focusable="true"
+                android:text="@string/tab_movies"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnTabSeries"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="12dp"
+                android:focusable="true"
+                android:text="@string/tab_series"
+                android:textColor="@color/gray_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnTabShahid"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="12dp"
+                android:focusable="true"
+                android:text="@string/tab_shahid"
+                android:textColor="@color/gray_text"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btnTabMyMovies"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_marginStart="12dp"
+                android:focusable="true"
+                android:text="@string/tab_my_movies"
+                android:textColor="@color/amber_accent"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- User Badge -->
+        <TextView
+            android:id="@+id/tvUserBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User"
+            android:textColor="@color/gray_text"
+            android:textSize="14sp" />
+
+        <Button
+            android:id="@+id/btnLogout"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:layout_marginStart="16dp"
+            android:text="Déconnexion"
+            android:textColor="@color/red_primary"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+    <!-- Categories Horizontal Bar -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCategories"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:clipToPadding="false"
+        android:paddingHorizontal="24dp"
+        android:paddingVertical="8dp" />
+
+    <!-- Main Content Area Grid -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="24dp"
+        android:paddingTop="12dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvMediaGrid"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="24dp" />
+
+        <ProgressBar
+            android:id="@+id/pbLoading"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvEmptyState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Aucun titre disponible dans cette catégorie"
+            android:textColor="@color/gray_text"
+            android:textSize="18sp"
+            android:visibility="gone" />
+
+    </FrameLayout>
+
+</LinearLayout>

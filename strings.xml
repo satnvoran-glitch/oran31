@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VIU CINEMA</string>
+    <string name="login_title">ACTIVATION VIU CINEMA</string>
+    <string name="login_subtitle">Saisissez votre code d\'abonnement à 8 chiffres pour accéder au contenu</string>
+    <string name="code_hint">Ex: 84729104</string>
+    <string name="btn_activate">ACTIVER MON ABONNEMENT</string>
+    <string name="tab_movies">Movies</string>
+    <string name="tab_series">Series</string>
+    <string name="tab_shahid">Shahid VIP</string>
+    <string name="tab_my_movies">My Movies</string>
+    <string name="all_categories">Toutes les catégories</string>
+</resources>
