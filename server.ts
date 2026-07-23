@@ -1548,19 +1548,44 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
   }
 
   const db = loadDB();
-  // Lookup in local DB by cleanCode or rawCode
+  const queryVal = cleanCode || rawCode;
+
+  // 1. Lookup in local DB codes table
   let foundCode = db.codes.find(c => c.code.trim() === cleanCode || c.code.trim() === rawCode);
 
-  // Fallback check in Supabase "codes" table if not in local DB
+  // 2. Lookup in local DB subscriptions table if not in codes
+  if (!foundCode) {
+    const existingSub = db.subscriptions.find(s => 
+      s.code_used === cleanCode || 
+      s.code_used === rawCode || 
+      s.username === rawCode || 
+      s.username === cleanCode || 
+      (s as any).code === rawCode
+    );
+
+    if (existingSub) {
+      foundCode = {
+        id: existingSub.id,
+        code: existingSub.code_used || existingSub.username || queryVal,
+        client_name: existingSub.client || 'Client VIU App',
+        duration: 12,
+        created_at: existingSub.activated_at || new Date().toISOString(),
+        activated_at: existingSub.activated_at || new Date().toISOString(),
+        expires_at: existingSub.expires_at || null,
+        status: existingSub.status === 'Active' ? 'Utilisé' : (existingSub.status === 'Expired' ? 'Expiré' : 'Utilisé')
+      };
+    }
+  }
+
+  // 3. Fallback check in Supabase "codes" table if not in local DB
   if (!foundCode) {
     const supabase = getSupabaseClient();
     if (supabase) {
       try {
         console.log('[LOGIN API] Recherche du code dans la table Supabase "codes"...');
-        const queryVal = cleanCode || rawCode;
         const { data, error } = await supabase.from('codes').select('*').eq('code', queryVal).maybeSingle();
         if (error) {
-          console.error('[Supabase SQL Query Error]:', error.message);
+          console.error('[Supabase SQL Query Error codes]:', error.message);
         } else if (data) {
           foundCode = {
             id: 'code_sp_' + data.code,
@@ -1577,6 +1602,51 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
         }
       } catch (e: any) {
         console.error('[Supabase Exception] Erreur lors de la requête SQL codes:', e?.message || e);
+      }
+    }
+  }
+
+  // 4. Fallback check in Supabase "subscriptions" table if still not found
+  if (!foundCode) {
+    const supabase = getSupabaseClient();
+    if (supabase) {
+      try {
+        console.log('[LOGIN API] Recherche dans la table Supabase "subscriptions"...');
+        const { data, error } = await supabase.from('subscriptions').select('*').or(`code_used.eq.${queryVal},username.eq.${queryVal},code.eq.${queryVal}`).maybeSingle();
+        if (error) {
+          console.error('[Supabase SQL Query Error subscriptions]:', error.message);
+        } else if (data) {
+          const subObj = {
+            id: data.id || 'sub_sp_' + (data.code_used || data.username || Date.now()),
+            client: data.client || 'Client Supabase',
+            username: data.username || `viu_${queryVal}`,
+            password: data.password || 'pwd_default',
+            code_used: data.code_used || data.code || queryVal,
+            activated_at: data.activated_at || new Date().toISOString(),
+            expires_at: data.expires_at || null,
+            status: data.status || 'Active',
+            device_id: device_id || 'Android TV',
+            last_connection: new Date().toISOString()
+          };
+
+          if (!db.subscriptions.some(s => s.id === subObj.id || s.code_used === subObj.code_used)) {
+            db.subscriptions.unshift(subObj);
+            saveDB(db);
+          }
+
+          foundCode = {
+            id: 'code_sub_' + subObj.code_used,
+            code: String(subObj.code_used).trim(),
+            client_name: subObj.client,
+            duration: 12,
+            created_at: subObj.activated_at,
+            activated_at: subObj.activated_at,
+            expires_at: subObj.expires_at,
+            status: subObj.status === 'Active' ? 'Utilisé' : 'Expiré'
+          };
+        }
+      } catch (e: any) {
+        console.error('[Supabase Exception] Erreur lors de la requête SQL subscriptions:', e?.message || e);
       }
     }
   }
