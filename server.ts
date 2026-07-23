@@ -1610,7 +1610,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     }
   }
 
-  // 4. Fallback check in Supabase "subscriptions" table if still not found
+// 4. Fallback check in Supabase "subscriptions" table if still not found
   if (!foundCode) {
     const supabase = getSupabaseClient();
     if (supabase) {
@@ -1638,6 +1638,10 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
             saveDB(db);
           }
 
+          // توحيد قراءة الحالة وتفادي تحويلها إلى Expiré بالخطأ
+          const spSubStatus = String(subObj.status || '').trim().toUpperCase();
+          const isActif = (spSubStatus === 'ACTIVE' || spSubStatus === 'ACTIF' || spSubStatus === 'UTILISÉ' || spSubStatus === 'UTILISE' || spSubStatus === '1' || spSubStatus === 'TRUE');
+
           foundCode = {
             id: 'code_sub_' + subObj.code_used,
             code: String(subObj.code_used).trim(),
@@ -1646,7 +1650,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
             created_at: subObj.activated_at,
             activated_at: subObj.activated_at,
             expires_at: subObj.expires_at,
-            status: subObj.status === 'Active' ? 'Utilisé' : 'Expiré'
+            status: isActif ? 'Utilisé' : 'Expiré'
           };
         }
       } catch (e: any) {
@@ -1664,15 +1668,16 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
       error: 'Code d\'abonnement invalide ou introuvable.'
     };
     console.log('[LOGIN API] Réponse envoyée au client (404):', notFoundResp);
-    return res.status(404).json(notFoundResp);
+    return res.status(200).json(notFoundResp);
   }
 
   const now = new Date();
   const device = device_id || device_name || req.headers['user-agent'] || 'Android TV Client';
   const effectiveCode = foundCode.code;
 
-  // SCENARIO 1: CODE EXPIRED
-  if (foundCode.status === 'Expiré' || (foundCode.expires_at && new Date(foundCode.expires_at) <= now)) {
+  // SCENARIO 1: CODE EXPIRED (مع إضافة فترة سماح 24 ساعة لتفادي مشاكل فروقات التوقيت في السيرفر)
+  const gracePeriod = new Date(now.getTime() - (24 * 3600 * 1000));
+  if (foundCode.status === 'Expiré' || (foundCode.expires_at && new Date(foundCode.expires_at) <= gracePeriod)) {
     foundCode.status = 'Expiré';
     saveDB(db);
     syncSupabaseCode(foundCode);
@@ -1682,7 +1687,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
       error: 'Ce code d\'abonnement est expiré. Veuillez contacter votre revendeur pour le renouveler.'
     };
     console.log('[LOGIN API] Réponse envoyée au client (401 Expiré):', expiredResp);
-    return res.status(401).json(expiredResp);
+    return res.status(200).json(expiredResp);
   }
 
   // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED
@@ -1796,6 +1801,9 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     expires_at: newSub.expires_at,
     device_id: device
   };
+  console.log('[LOGIN API] Réponse envoyée au client (200 Activation):', activationResp);
+  return res.json(activationResp);
+});
   console.log('[LOGIN API] Réponse envoyée au client (200 Activation):', activationResp);
   return res.json(activationResp);
 });
