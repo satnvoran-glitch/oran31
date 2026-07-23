@@ -1670,12 +1670,17 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     return res.status(404).json(notFoundResp);
   }
 
-  const now = new Date();
+ const now = new Date();
   const device = device_id || device_name || req.headers['user-agent'] || 'Android TV Client';
   const effectiveCode = foundCode.code;
 
-  // SCENARIO 1: CODE EXPIRED
-  if (foundCode.status === 'Expiré' || (foundCode.expires_at && new Date(foundCode.expires_at) <= now)) {
+  // توحيد حالة الكود لتفادي مشاكل الحروف والحساسية (Uppercase & Clean)
+  const codeStatusClean = String(foundCode.status || '').trim().toUpperCase();
+
+  // SCENARIO 1: CODE EXPIRED (فحص شامل لكل تسميات انتهاء الصلاحية)
+  const isStatusExpired = (codeStatusClean === 'EXPIRÉ' || codeStatusClean === 'EXPIRE' || codeStatusClean === 'EXPIRED' || codeStatusClean === '0' || codeStatusClean === 'FALSE');
+  
+  if (isStatusExpired || (foundCode.expires_at && new Date(foundCode.expires_at) <= now)) {
     foundCode.status = 'Expiré';
     saveDB(db);
     syncSupabaseCode(foundCode);
@@ -1688,8 +1693,10 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     return res.status(401).json(expiredResp);
   }
 
-  // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED
-  if (foundCode.status === 'Utilisé') {
+  // SCENARIO 2: CODE ALREADY USED & ACTIVE -> RE-LOGIN ALLOWED (فحص شامل لكل تسميات النشاط والاستعمال)
+  const isStatusUsedOrActive = (codeStatusClean === 'UTILISÉ' || codeStatusClean === 'UTILISE' || codeStatusClean === 'USED' || codeStatusClean === 'ACTIVE' || codeStatusClean === 'ACTIF' || codeStatusClean === '1' || codeStatusClean === 'TRUE');
+
+  if (isStatusUsedOrActive) {
     let sub = db.subscriptions.find(s => String(s.code_used || '').trim() === effectiveCode || String(s.code_used || '').trim() === rawCode);
     if (!sub) {
       const durationMonths = Number(foundCode.duration) || db.config.default_duration || 12;
@@ -1744,7 +1751,7 @@ app.post(['/api/app/login', '/api/app/activate'], async (req, res) => {
     console.log('[LOGIN API] Réponse envoyée au client (200 Re-login):', successResp);
     return res.json(successResp);
   }
-
+  
   // SCENARIO 3: DISPONIBLE -> NEW FIRST ACTIVATION
   const durationMonths = Number(foundCode.duration) || db.config.default_duration || 12;
   const expiresAt = new Date(now.getTime() + Math.round(durationMonths * 30 * 24 * 3600 * 1000));
