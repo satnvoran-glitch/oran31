@@ -12,9 +12,13 @@ app.get('/', (req: Request, res: Response) => {
   res.send('IU Panel Backend is Running Successfully! 🚀');
 });
 
-// دالة موحدة للرد بنجاح وتغطية كل صيغ الاستجابة التي تنتظرها التطبيقات
+// دالة موحدة للرد بنجاح وتغطية كل صيغ الاستجابة
 const handleLoginSuccess = (req: Request, res: Response) => {
-  console.log("BODY RECEIVED:", req.body); // طباعة البيانات الواردة في سجلات Render لمعاينة الطلب
+  console.log("----------------------------------------");
+  console.log("PATH REQUESTED:", req.path);
+  console.log("METHOD:", req.method);
+  console.log("BODY RECEIVED:", req.body);
+  console.log("QUERY RECEIVED:", req.query);
   
   const activeCode = req.body.code || req.body.username || req.query.code || "12345";
   
@@ -24,7 +28,7 @@ const handleLoginSuccess = (req: Request, res: Response) => {
     { expiresIn: '30d' }
   );
 
-  return res.status(200).json({
+  const responseObject = {
     result: true,
     status: "success",
     success: true,
@@ -41,7 +45,12 @@ const handleLoginSuccess = (req: Request, res: Response) => {
       active_connections: 1,
       max_connections: 2
     }
-  });
+  };
+
+  console.log("SENDING RESPONSE:", JSON.stringify(responseObject));
+  console.log("----------------------------------------");
+
+  return res.status(200).json(responseObject);
 };
 
 // تغطية كل المسارات المحتملة التي قد يطلبها تطبيق RedStream
@@ -49,11 +58,15 @@ app.post('/api/app/login', handleLoginSuccess);
 app.post('/login.json', handleLoginSuccess);
 app.post('/api/login', handleLoginSuccess);
 app.post('/auth', handleLoginSuccess);
+
+// دعم طلبات الـ GET أيضاً في حال كان التطبيق يرسل البيانات عبر الـ Query Parameters
+app.get('/api/app/login', handleLoginSuccess);
+app.get('/login.json', handleLoginSuccess);
+app.get('/api/login', handleLoginSuccess);
+app.get('/auth', handleLoginSuccess);
+
 app.all('*', (req: Request, res: Response, next) => {
-  if (req.method === 'POST') {
-    return handleLoginSuccess(req, res);
-  }
-  next();
+  return handleLoginSuccess(req, res);
 });
 
 const PORT = process.env.PORT || 3000;
